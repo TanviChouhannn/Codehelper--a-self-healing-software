@@ -1,0 +1,510 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#F5F5F0">
+    <title>Chaos Lab | CodeHelper AI</title>
+
+    <style>
+        :root {
+            --bg: #F5F5F0;
+            --surface: #FFFFFF;
+            --text: #20251B;
+            --muted: #73786A;
+            --accent: #657747;
+            --border: #DDE1D3;
+        }
+        
+/* Clear, readable text and status values */
+.status-value {
+    color: #20251B !important;
+    font-weight: 800;
+    background: #E5EBDD;
+    padding: 7px 12px;
+    border-radius: 6px;
+    min-width: 100px;
+}
+
+#chaosResult {
+    color: #20251B !important;
+    background: #F5F5F0;
+    border: 1px solid #DDE1D3;
+    font-weight: 600;
+}
+
+.panel h2 {
+    color: #20251B;
+    font-weight: 700;
+}
+
+.panel p {
+    color: #505747;
+}
+
+/* Dark mode: retain readable dark text on light status surfaces */
+body.dark .status-value {
+    color: #20251B !important;
+    background: #E5EBDD;
+}
+
+body.dark #chaosResult {
+    color: #20251B !important;
+    background: #F5F5F0;
+    border-color: #DDE1D3;
+}
+
+body.dark .panel h2 {
+    color: #F0F1E9;
+}
+
+body.dark .panel p {
+    color: #B6BDAA;
+}
+
+/* Keep the main heading visible */
+body.dark h1 {
+    color: #F0F1E9;
+}
+
+/* Improve button readability */
+#chaosButton {
+    color: #FFFFFF;
+    font-weight: 700;
+}
+
+nav a {
+    font-weight: 600;
+}
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+        }
+
+        body.dark {
+            --bg: #171B15;
+            --surface: #242A20;
+            --text: #F0F1E9;
+            --muted: #B6BDAA;
+            --accent: #A4B97C;
+            --border: #414A39;
+        }
+
+        nav {
+            min-height: 80px;
+            padding: 18px 7%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 7px;
+            padding: 12px 18px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        nav button {
+            background: var(--text);
+            color: var(--bg);
+            border-radius: 25px;
+        }
+
+        main {
+            width: min(900px, 100%);
+            margin: 0 auto;
+            padding: 65px 25px;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: clamp(32px, 4vw, 44px);
+            margin-bottom: 15px;
+        }
+
+        .intro {
+            color: var(--muted);
+            line-height: 1.8;
+            max-width: 650px;
+            font-size: 15px;
+        }
+
+        .panel {
+            margin-top: 32px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+        }
+
+        .panel h2 {
+            font-size: 19px;
+            margin-bottom: 12px;
+        }
+
+        .panel p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        #chaosButton {
+            margin-top: 24px;
+            background: var(--accent);
+            color: white;
+            padding: 14px 22px;
+        }
+
+        #chaosButton:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 17px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .status-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-value {
+            color: var(--accent);
+            font-weight: bold;
+            text-align: right;
+        }
+
+        #chaosResult {
+            margin-top: 20px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        #outageOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #171B15;
+            color: #F0F1E9;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .outage-content {
+            width: min(500px, 100%);
+        }
+
+        .outage-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 25px;
+            border: 2px solid #A4B97C;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #A4B97C;
+            font-size: 30px;
+        }
+
+        #outageTitle {
+            margin-bottom: 15px;
+            font-size: clamp(25px, 5vw, 38px);
+        }
+
+        #outageText {
+            color: #B6BDAA;
+            line-height: 1.8;
+        }
+
+        #progressBar {
+            height: 5px;
+            width: 0;
+            background: #A4B97C;
+            transition: width .5s linear;
+        }
+
+        .progress-track {
+            height: 5px;
+            width: min(350px, 100%);
+            margin: 25px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #30382A;
+        }
+
+        #outageLabel {
+            color: #A4B97C;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            nav {
+                justify-content: flex-start;
+            }
+
+            main {
+                padding: 35px 16px;
+            }
+
+            .panel {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="ac.html">Analyze Code</a>
+        <a href="systemmonitor.html">System Monitor</a>
+        <a href="chaoslab.html">Chaos Lab</a>
+        <button id="themeButton" type="button">DARK</button>
+        <button type="button" id="loginButton">LOGIN</button>
+    </nav>
+
+    <main>
+        <div class="eyebrow">Self-Healing System</div>
+        <h1>Chaos Lab</h1>
+
+        <p class="intro">
+            Start the self-healing test and verify that the system can
+            recover automatically.
+        </p>
+
+        <section class="panel">
+            <h2>Self-Healing Test</h2>
+            <p>
+                Start the test to verify automatic recovery. Analyze Code
+                becomes available after the test succeeds.
+            </p>
+
+            <button id="chaosButton" type="button">
+                Run Self-Healing Test
+            </button>
+
+            <div id="chaosResult" role="status" aria-live="polite">
+                Self-healing has not started.
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>System Status</h2>
+
+            <div class="status-row">
+                <span>Backend</span>
+                <span class="status-value" id="backendStatus">Checking</span>
+            </div>
+
+            <div class="status-row">
+                <span>Self-Healing</span>
+                <span class="status-value" id="recoveryStatus">Not Started</span>
+            </div>
+
+            <div class="status-row">
+                <span>Readiness</span>
+                <span class="status-value" id="readinessStatus">Locked</span>
+            </div>
+        </section>
+    </main>
+
+    <div id="outageOverlay" role="status" aria-live="polite">
+        <div class="outage-content">
+            <div class="outage-icon" id="outageIcon">↻</div>
+            <h1 id="outageTitle">Self-Healing Started</h1>
+            <p id="outageText">
+                The system is attempting automatic recovery.
+            </p>
+
+            <div class="progress-track">
+                <div id="progressBar"></div>
+            </div>
+
+            <p id="outageLabel">Self-Healing In Progress</p>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        const chaosButton = $("chaosButton");
+        const resultBox = $("chaosResult");
+        const overlay = $("outageOverlay");
+        const themeButton = $("themeButton");
+
+        let testRunning = false;
+        let refreshTimer = null;
+
+        themeButton.addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+            themeButton.textContent =
+                document.body.classList.contains("dark") ? "LIGHT" : "DARK";
+        });
+
+        async function refreshReadiness() {
+            try {
+                const response = await fetch("/api/chaos/readiness", {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) throw new Error();
+
+                const data = await response.json();
+
+                $("readinessStatus").textContent =
+                    data.ready ? "READY" : "LOCKED";
+
+                return data.ready === true;
+            } catch {
+                $("readinessStatus").textContent = "Unavailable";
+                return false;
+            }
+        }
+
+        async function refreshBackend() {
+            try {
+                const response = await fetch("/api/healing/stats", {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) throw new Error();
+
+                $("backendStatus").textContent = "Connected";
+            } catch {
+                $("backendStatus").textContent = "Unavailable";
+            }
+
+            await refreshReadiness();
+        }
+
+        function showProgress() {
+            overlay.style.display = "flex";
+            $("outageIcon").textContent = "↻";
+            $("outageTitle").textContent = "Self-Healing Started";
+            $("outageText").textContent =
+                "The system is attempting automatic recovery.";
+            $("outageLabel").textContent = "Self-Healing In Progress";
+            $("progressBar").style.width = "15%";
+
+            let progress = 15;
+
+            refreshTimer = setInterval(() => {
+                progress = Math.min(progress + 5, 90);
+                $("progressBar").style.width = progress + "%";
+            }, 700);
+        }
+
+        async function runSelfHealing() {
+            if (testRunning) return;
+
+            testRunning = true;
+            chaosButton.disabled = true;
+            $("recoveryStatus").textContent = "Running";
+            resultBox.textContent = "Self-healing is running...";
+
+            showProgress();
+
+            try {
+                const response = await fetch("/api/chaos/run-test", {
+                    method: "POST",
+                    headers: { "Accept": "application/json" },
+                    cache: "no-store"
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.status !== "RECOVERED") {
+                    throw new Error("Self-healing could not be completed.");
+                }
+
+                $("recoveryStatus").textContent = "Successful";
+                $("outageIcon").textContent = "✓";
+                $("outageTitle").textContent = "Self-Healing Successful";
+                $("outageText").textContent =
+                    "The system has recovered and is ready to use.";
+                $("outageLabel").textContent = "Recovery Complete";
+                $("progressBar").style.width = "100%";
+
+                resultBox.textContent = "Self-healing successful. Analyze Code is now unlocked.";
+
+            } catch {
+                $("recoveryStatus").textContent = "Not Completed";
+                $("outageIcon").textContent = "↻";
+                $("outageTitle").textContent = "Self-Healing Not Completed";
+                $("outageText").textContent =
+                    "The system could not confirm recovery. Please try again.";
+                $("outageLabel").textContent = "Not Completed";
+
+                resultBox.textContent =
+                    "Self-healing was not completed. Check the server configuration.";
+            } finally {
+                if (refreshTimer !== null) {
+                    clearInterval(refreshTimer);
+                    refreshTimer = null;
+                }
+
+                await refreshBackend();
+
+                setTimeout(() => {
+                    overlay.style.display = "none";
+                    testRunning = false;
+                    chaosButton.disabled = false;
+                }, 1200);
+            }
+        }
+
+        chaosButton.addEventListener("click", runSelfHealing);
+
+        refreshBackend();
+        setInterval(() => {
+            if (!testRunning) refreshBackend();
+        }, 3000);
+    </script>
+</body>
+</html>

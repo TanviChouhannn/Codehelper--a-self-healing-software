@@ -1,0 +1,171 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #F5F5F0;
+    color: #20251B;
+    font-family: Arial, sans-serif;
+}
+
+nav {
+    height: 80px;
+    padding: 0 7%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #E2E4DA;
+    background-color: #F5F5F0;
+}
+
+nav a {
+    color: #657747;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+nav a:hover {
+    color: #20251B;
+}
+
+nav button {
+    background-color: #20251B;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 25px;
+    padding: 11px 22px;
+    cursor: pointer;
+}
+
+nav button:hover,
+.b1 button:hover {
+    background-color: #657747;
+    color: #FFFFFF;
+}
+
+.b1 {
+    min-height: 600px;
+    padding: 50px 8%;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.ba, .bb {
+    width: 50%;
+}
+
+.ba h1 {
+    color: #20251B;
+    font-size: clamp(38px, 4vw, 54px);
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+    font-weight: 600;
+    margin: 0 3% 25px !important;
+}
+
+.ba h3 {
+    max-width: 480px;
+    font-size: 15px;
+    line-height: 1.8;
+    font-weight: normal;
+    color: #686D5D;
+    margin: 0 3% !important;
+}
+
+.ba button {
+    margin: 30px 8px 0 3% !important;
+    padding: 14px 20px !important;
+    border-radius: 25px;
+    background-color: #20251B;
+    color: #FFFFFF;
+    border: 1px solid #20251B;
+    cursor: pointer;
+}
+
+.ba button + button {
+    background-color: transparent;
+    color: #20251B;
+    border: 1px solid #A8B19A;
+    margin-left: 0 !important;
+}
+
+.ba button + button:hover {
+    background-color: #E7EBDD;
+    color: #20251B;
+}
+
+.bb {
+    height: 400px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.bi, .bii, .orbit {
+    position: absolute;
+    border: 1px solid #899875;
+    border-radius: 50%;
+}
+
+.bi {
+    width: 150px;
+    height: 150px;
+    transform: rotateX(65deg) rotate(-25deg);
+}
+
+.bii {
+    width: 190px;
+    height: 190px;
+    transform: rotateX(65deg) rotate(45deg);
+}
+
+.orbit-one {
+    width: 280px;
+    height: 280px;
+    transform: rotate(-30deg) scaleY(0.7);
+}
+
+.orbit-two {
+    width: 310px;
+    height: 175px;
+    transform: rotate(35deg);
+    border-color: #B7BFA9;
+}
+
+.biii {
+    width: 125px;
+    height: 125px;
+    position: absolute;
+    border-radius: 35%;
+    background: linear-gradient(135deg, #303D25, #657747);
+    box-shadow: 0 15px 30px #20251B20;
+    transform: rotate(-8deg);
+}
+
+.biii::before {
+    content: "</>";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #F5F5F0;
+    font-family: monospace;
+}
+
+.bb:hover .biii {
+    transform: rotate(0deg) scale(1.05);
+    transition: 0.3s;
+}
+
+
+
+

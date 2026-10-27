@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#20251B">
+    <title>CodeHelper</title>
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            margin: 0;
+            background: #F5F5F0;
+            color: #20251B;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #657747;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        nav button {
+            padding: 10px 16px;
+            border: 1px solid #657747;
+            border-radius: 7px;
+            background: #657747;
+            color: #FFFFFF;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        nav button:hover,
+        .ba button:hover {
+            opacity: 0.85;
+        }
+
+        .b1 {
+            color: #20251B;
+            transition: color 0.3s ease;
+        }
+
+        .ba h1 {
+            color: #20251B;
+        }
+
+        .ba h3 {
+            color: #626858;
+            line-height: 1.7;
+        }
+
+        .ba button {
+            padding: 12px 18px;
+            margin-right: 8px;
+            border: 1px solid #657747;
+            border-radius: 8px;
+            background: #657747;
+            color: #FFFFFF;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .ba button + button {
+            background: #20251B;
+            border-color: #20251B;
+        }
+
+        body.dark {
+            background: #171B15;
+            color: #F0F1E9;
+        }
+
+        body.dark nav a {
+            color: #A4B97C;
+        }
+
+        body.dark .b1,
+        body.dark .ba h1 {
+            color: #F0F1E9;
+        }
+
+        body.dark .ba h3 {
+            color: #B6BDAA;
+        }
+
+        body.dark nav button {
+            background: #657747;
+            color: #FFFFFF;
+        }
+
+        body.dark .ba button {
+            background: #A4B97C;
+            border-color: #A4B97C;
+            color: #171B15;
+        }
+
+        body.dark .ba button + button {
+            background: transparent;
+            border-color: #A4B97C;
+            color: #A4B97C;
+        }
+
+        body.dark .bi,
+        body.dark .bii,
+        body.dark .biii {
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            nav {
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .ba button {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="ac.html">Analyze Code</a>
+        <a href="systemmonitor.html">System Monitor</a>
+        <a href="chaoslab.html">Chaos Lab</a>
+        <!-- <button id="themeButton" type="button">DARK</button>
+        <button id="loginButton" type="button">LOGIN</button> -->
+    </nav>
+
+    <div class="b1">
+        <div class="ba">
+            <h1>Software that <br> knows how to recover.</h1>
+
+            <h3>
+                Analyze errors, detect failures and recover from unexpected
+                issues with an AI-powered self-healing coding platform.
+            </h3>
+
+            <br>
+
+        
+        </div>
+
+        <div class="bb">
+            <div class="bi"></div>
+            <div class="bii"></div>
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="biii"></div>
+        </div>
+    </div>
+
+    <script>
+        const themeButton = document.getElementById("themeButton");
+
+        themeButton.addEventListener("click", () => {
+            const isDark = document.body.classList.toggle("dark");
+            themeButton.textContent = isDark ? "LIGHT" : "DARK";
+        });
+
+        document.getElementById("exploreCodeButton").addEventListener(
+            "click", () => {
+                window.location.href = "ac.html";
+            }
+        );
+
+        document.getElementById("explorePlatformButton").addEventListener(
+            "click", () => {
+                window.location.href = "systemmonitor.html";
+            }
+        );
+    </script>
+</body>
+</html>
