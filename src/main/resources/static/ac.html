@@ -1,0 +1,859 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#20251B">
+    <title>Analyze Code | CodeHelper AI</title>
+
+    <link rel="stylesheet" href="css/style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/editor/editor.main.min.css">
+
+    <style>
+        .editor-section { margin: 25px; }
+
+        .editor-toolbar {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .editor-toolbar select {
+            padding: 12px;
+            border-radius: 8px;
+            background: #20251B;
+            color: #F5F5F0;
+            border: 1px solid #657747;
+        }
+
+        .editor-toolbar label {
+            display: block;
+            color: #657747;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .editor-actions button {
+            padding: 12px 18px;
+            margin: 0;
+            border: none;
+            border-radius: 8px;
+            background: #657747;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .editor-actions button:hover:not(:disabled) {
+            opacity: .85;
+        }
+
+        .editor-actions button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .editor-actions .self-heal-button {
+            background: #20251B;
+            border: 1px solid #657747;
+        }
+
+        .editor-actions .rate-limit-button {
+            background: #8B4A25;
+            border: 1px solid #C58B55;
+        }
+
+        #editor {
+            height: 420px;
+            width: 100%;
+            border: 1px solid #d6dbc9;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #editorMessage, #rateLimitResult, #healingResult {
+            display: none;
+            padding: 14px;
+            margin-top: 12px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            line-height: 1.6;
+        }
+
+        #editorMessage.error, #healingResult.error {
+            background: #f7e6e2;
+            color: #702a23;
+            border-left: 5px solid #b5473c;
+        }
+
+        #editorMessage.success, #healingResult.success {
+            background: #e9eddf;
+            color: #20251B;
+            border-left: 5px solid #657747;
+        }
+
+        #rateLimitResult {
+            color: #20251B;
+            background: #f7e6e2;
+            border-left: 5px solid #b5473c;
+        }
+
+        #healingResult {
+            margin: 12px 25px 25px;
+        }
+
+        .healing-flow {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin: 22px 25px;
+        }
+
+        .healing-card {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid;
+            opacity: .55;
+            transition: opacity .3s ease, transform .3s ease;
+            overflow-wrap: anywhere;
+        }
+
+        .healing-card.active {
+            opacity: 1;
+            animation: cardAppear .35s ease;
+        }
+
+        .healing-card h3 {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: .5px;
+        }
+        
+
+        .healing-card p {
+            margin: 13px 0 8px;
+            line-height: 1.6;
+        }
+
+        .healing-card small { opacity: .85; }
+
+        .error-card {
+            background: #3b1717;
+            border-color: #d94b4b;
+            color: #ffe1e1;
+        }
+
+        .diagnosis-card {
+            background: #3d2b13;
+            border-color: #e5a13c;
+            color: #ffe4b4;
+        }
+
+        .recovery-card {
+            background: #153522;
+            border-color: #38a566;
+            color: #d0ffdf;
+        }
+
+        .recovery-card.failed {
+            background: #3b1717;
+            border-color: #d94b4b;
+            color: #ffe1e1;
+        }
+
+        .healing-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .red-dot { background: #ff5555; }
+        .orange-dot { background: #ffb347; }
+        .green-dot { background: #4ade80; }
+
+        .flow-arrow {
+            text-align: center;
+            font-size: 22px;
+            margin-top: 10px;
+            opacity: .7;
+        }
+
+        @keyframes cardAppear {
+            from { opacity: .45; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .editor-section { margin: 12px; }
+            #editor { height: 350px; }
+            #healingResult { margin: 12px; }
+            .healing-flow { margin: 16px 12px; }
+            .editor-actions button { padding: 10px 13px; }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="ac.html">Analyze Code</a>
+        <a href="systemmonitor.html">System Monitor</a>
+        <a href="chaoslab.html">Chaos Lab</a>
+        <button id="themeButton" type="button">DARK</button>
+        <button type="button" id="loginButton">LOGIN</button>
+    </nav>
+
+    <h2 style="margin:30px 25px;">Analyze Your Code</h2>
+
+    <div class="editor-section">
+        <div class="editor-toolbar">
+            <div>
+                <label for="languageSelect">Programming Language</label>
+                <select id="languageSelect">
+                    <option value="auto">Auto Detect</option>
+                    <option value="java">Java</option>
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                    <option value="csharp">C#</option>
+                    <option value="php">PHP</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="sql">SQL</option>
+                </select>
+            </div>
+
+            <div class="editor-actions">
+                <button id="checkButton" type="button">Check Code</button>
+                <button id="applyButton" type="button" disabled>Apply Fixed Code</button>
+                <button id="resetButton" type="button">Clear Editor</button>
+
+                <button id="selfHealButton"
+                        class="self-heal-button"
+                        type="button"
+                        disabled>
+                    Inject Failure &amp; Self-Heal
+                </button>
+
+                <button id="rateLimitButton"
+                        class="rate-limit-button"
+                        type="button"
+                        disabled>
+                    Inject API Limit Error
+                </button>
+            </div>
+        </div>
+
+        <div id="editor"></div>
+        <div id="editorMessage" role="status" aria-live="polite"></div>
+        <div id="rateLimitResult" role="status" aria-live="polite"></div>
+    </div>
+
+    <h3 style="margin:30px 25px 0;">Live Self-Healing Process</h3>
+
+    <div class="healing-flow">
+        <div class="healing-card error-card" id="errorCard">
+            <div class="healing-heading">
+                <span class="status-dot red-dot"></span>
+                <h3>1. ERROR DETECTED</h3>
+            </div>
+            <p id="errorMessage">Waiting for a test...</p>
+            <small id="errorTime">Not started</small>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="healing-card diagnosis-card" id="diagnosisCard">
+            <div class="healing-heading">
+                <span class="status-dot orange-dot"></span>
+                <h3>2. DIAGNOSING &amp; RECOVERING</h3>
+            </div>
+            <p id="diagnosisMessage">Waiting for recovery...</p>
+            <small id="diagnosisTime">Not started</small>
+        </div>
+
+        <div class="flow-arrow">↓</div>
+
+        <div class="healing-card recovery-card" id="recoveryCard">
+            <div class="healing-heading">
+                <span class="status-dot green-dot"></span>
+                <h3>3. RECOVERY RESULT</h3>
+            </div>
+            <p id="recoveryMessage">Waiting for recovery result...</p>
+            <small id="recoveryTime">Not completed</small>
+        </div>
+    </div>
+
+    <section id="healingResult" aria-live="polite">
+        Self-healing results will appear here.
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        const languageSelect = $("languageSelect");
+        const checkButton = $("checkButton");
+        const applyButton = $("applyButton");
+        const resetButton = $("resetButton");
+        const selfHealButton = $("selfHealButton");
+        const rateLimitButton = $("rateLimitButton");
+        const editorMessage = $("editorMessage");
+        const healingResult = $("healingResult");
+        const rateLimitResult = $("rateLimitResult");
+        const themeButton = $("themeButton");
+
+        let editor = null;
+        let fixedCode = "";
+        let requestInProgress = false;
+        let selfHealingReady = false;
+
+        const languageMap = {
+            auto: "plaintext",
+            java: "java",
+            python: "python",
+            javascript: "javascript",
+            typescript: "typescript",
+            cpp: "cpp",
+            c: "c",
+            csharp: "csharp",
+            php: "php",
+            html: "html",
+            css: "css",
+            sql: "sql"
+        };
+
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        themeButton.addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+            themeButton.textContent =
+                document.body.classList.contains("dark") ? "LIGHT" : "DARK";
+        });
+
+        function showMessage(element, message, type = "") {
+            element.textContent = message;
+            element.className = type;
+            element.style.display = "block";
+        }
+
+        function showEditorMessage(message, type = "") {
+            showMessage(editorMessage, message, type);
+        }
+
+        function showHealingResult(message, type = "") {
+            showMessage(healingResult, message, type);
+        }
+
+        function showRateLimitResult(message, detected = false) {
+            rateLimitResult.style.display = "block";
+            rateLimitResult.style.background =
+                detected ? "#e9eddf" : "#f7e6e2";
+            rateLimitResult.style.borderLeft =
+                detected ? "5px solid #657747" : "5px solid #b5473c";
+            rateLimitResult.style.color = "#20251B";
+            rateLimitResult.textContent = message;
+        }
+
+        function setBusy(busy) {
+            checkButton.disabled = busy;
+            resetButton.disabled = busy;
+            selfHealButton.disabled = busy || !selfHealingReady;
+            rateLimitButton.disabled = busy || !selfHealingReady;
+            applyButton.disabled = busy || !fixedCode;
+        }
+
+        async function updateInjectionButtons() {
+            try {
+                const response = await fetch("/api/chaos/readiness", {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) {
+                    throw new Error("Readiness unavailable");
+                }
+
+                const data = await response.json();
+                selfHealingReady = data.ready === true;
+            } catch (error) {
+                selfHealingReady = false;
+            }
+
+            selfHealButton.disabled =
+                requestInProgress || !selfHealingReady;
+
+            rateLimitButton.disabled =
+                requestInProgress || !selfHealingReady;
+        }
+
+        function setStage(cardId, messageId, timeId, message, active = true) {
+            $(cardId).classList.toggle("active", active);
+            $(messageId).textContent = message;
+            $(timeId).textContent = new Date().toLocaleTimeString();
+        }
+
+        function resetStages() {
+            setStage(
+                "errorCard", "errorMessage", "errorTime",
+                "Waiting for a test...", false
+            );
+
+            setStage(
+                "diagnosisCard", "diagnosisMessage", "diagnosisTime",
+                "Waiting for recovery...", false
+            );
+
+            setStage(
+                "recoveryCard", "recoveryMessage", "recoveryTime",
+                "Waiting for recovery result...", false
+            );
+
+            $("recoveryCard").classList.remove("failed");
+        }
+
+        async function postJson(url, body) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(body),
+                cache: "no-store"
+            });
+
+            let data;
+
+            try {
+                data = await response.json();
+            } catch {
+                throw new Error(
+                    "Invalid backend response. HTTP " + response.status
+                );
+            }
+
+            return { response, data };
+        }
+
+        function normalizeHeading(line) {
+            return line
+                .replace(/```[\w+#.-]*/g, "")
+                .replace(/^\s*#+\s*/, "")
+                .replace(/^\s*[-*+]\s+/, "")
+                .replace(/^\s*\d+[.)]\s+/, "")
+                .replace(/\*\*/g, "")
+                .replace(/__/g, "")
+                .replace(/`/g, "")
+                .replace(/\s*:\s*$/, "")
+                .trim()
+                .toUpperCase();
+        }
+
+        function getSection(text, heading, nextHeadings = []) {
+            if (typeof text !== "string" || !text.trim()) return "";
+
+            const lines = text.split(/\r?\n/);
+
+            const start = lines.findIndex(
+                line => normalizeHeading(line) === heading.toUpperCase()
+            );
+
+            if (start === -1) return "";
+
+            let end = lines.length;
+
+            for (let i = start + 1; i < lines.length; i++) {
+                const current = normalizeHeading(lines[i]);
+
+                if (nextHeadings.some(
+                    next => current === next.toUpperCase()
+                )) {
+                    end = i;
+                    break;
+                }
+            }
+
+            return lines.slice(start + 1, end)
+                .join("\n")
+                .trim()
+                .replace(/^\s*---+\s*$/gm, "")
+                .trim();
+        }
+
+        function extractFixedCode(text) {
+            const section = getSection(
+                text, "FIXED CODE", ["IMPROVEMENTS"]
+            );
+
+            if (!section) return "";
+
+            const match = section.match(
+                /```(?:[\w+#.-]+)?[ \t]*\r?\n([\s\S]*?)```/
+            );
+
+            return match
+                ? match[1].trim()
+                : section.replace(
+                    /^\s*```(?:[\w+#.-]+)?\s*$/gm, ""
+                ).trim();
+        }
+
+        function showAnalysis(result) {
+            if (typeof result !== "string" || !result.trim()) {
+                fixedCode = "";
+                applyButton.disabled = true;
+                showEditorMessage(
+                    "The AI returned an empty response.", "error"
+                );
+                return;
+            }
+
+            const errors = getSection(result, "ERRORS", [
+                "EXPLANATION", "FIXED CODE", "IMPROVEMENTS"
+            ]);
+
+            const explanation = getSection(result, "EXPLANATION", [
+                "FIXED CODE", "IMPROVEMENTS"
+            ]);
+
+            fixedCode = extractFixedCode(result);
+            applyButton.disabled = !fixedCode;
+
+            if (!errors && !explanation) {
+                showEditorMessage(
+                    "Could not find ERRORS and EXPLANATION in the AI response.",
+                    "error"
+                );
+                console.log("Raw AI response:", result);
+                return;
+            }
+
+            const noErrors =
+                /no errors|no issues|no bugs|none found/i.test(errors);
+
+            showEditorMessage(
+                "ERRORS\n\n" + (errors || "No errors section returned.") +
+                "\n\nEXPLANATION\n\n" +
+                (explanation || "No explanation section returned."),
+                errors && !noErrors ? "error" : "success"
+            );
+        }
+
+        async function sendCode() {
+            if (!editor) {
+                showEditorMessage("Editor is still loading.", "error");
+                return;
+            }
+
+            const code = editor.getValue().trim();
+
+            if (!code) {
+                showEditorMessage("Please paste your code first.", "error");
+                return;
+            }
+
+            if (requestInProgress) return;
+
+            requestInProgress = true;
+            setBusy(true);
+            fixedCode = "";
+            applyButton.disabled = true;
+            rateLimitResult.style.display = "none";
+            showEditorMessage("Checking your code...");
+
+            try {
+                const { response, data } = await postJson("/check", {
+                    code,
+                    language: languageSelect.value
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.result || "API request failed: HTTP " +
+                        response.status
+                    );
+                }
+
+                showAnalysis(data.result || "");
+            } catch (error) {
+                showEditorMessage(
+                    "API REQUEST FAILED\n\n" + error.message, "error"
+                );
+            } finally {
+                requestInProgress = false;
+                setBusy(false);
+                await updateInjectionButtons();
+            }
+        }
+
+        async function runHealingTest(mode) {
+            if (!editor) {
+                showEditorMessage("Editor is still loading.", "error");
+                return;
+            }
+
+            if (!selfHealingReady) {
+                showEditorMessage(
+                    "Run and pass the Chaos Lab self-healing test first.",
+                    "error"
+                );
+
+                await updateInjectionButtons();
+                return;
+            }
+
+            const code = editor.getValue().trim();
+            const language = languageSelect.value;
+
+            if (!code) {
+                showEditorMessage(
+                    "Paste code before running the test.", "error"
+                );
+                return;
+            }
+
+            if (requestInProgress) return;
+
+            requestInProgress = true;
+            setBusy(true);
+            fixedCode = "";
+            applyButton.disabled = true;
+            resetStages();
+            healingResult.style.display = "none";
+            rateLimitResult.style.display = "none";
+
+            const isRateLimit = mode === "rate-limit";
+
+            const armUrl = isRateLimit
+                ? "/api/chaos/arm-rate-limit"
+                : "/api/chaos/arm";
+
+            try {
+                showEditorMessage(
+                    isRateLimit
+                        ? "Preparing controlled HTTP 429 test..."
+                        : "Preparing controlled HTTP 503 recovery test..."
+                );
+
+                const { response: armResponse, data: armData } =
+                    await postJson(armUrl, { count: 1 });
+
+                if (!armResponse.ok) {
+                    throw new Error(
+                        armData.message ||
+                        "Could not prepare the test."
+                    );
+                }
+
+                const requestPromise = postJson("/check", {
+                    code,
+                    language
+                });
+
+                setStage(
+                    "errorCard", "errorMessage", "errorTime",
+                    isRateLimit
+                        ? "Controlled API limit test started."
+                        : "Controlled recovery test started."
+                );
+
+                await sleep(1000);
+
+                setStage(
+                    "diagnosisCard", "diagnosisMessage", "diagnosisTime",
+                    "The self-healing mechanism is processing the request."
+                );
+
+                const { response, data } = await requestPromise;
+
+                if (isRateLimit) {
+                    const detected =
+                        response.status === 429 &&
+                        data.rateLimited === true;
+
+                    $("recoveryCard").classList.toggle(
+                        "failed", !detected
+                    );
+
+                    setStage(
+                        "recoveryCard", "recoveryMessage", "recoveryTime",
+                        detected
+                            ? "Rate-limit test completed. Automatic retries stopped safely."
+                            : "The rate-limit test could not be confirmed."
+                    );
+
+                    const result =
+                        "HTTP STATUS: " + response.status + "\n" +
+                        "SIMULATED TEST: " +
+                        (data.simulated ? "Yes" : "No") + "\n" +
+                        "AUTOMATIC RETRY: " +
+                        (detected ? "Stopped safely" : "Not confirmed");
+
+                    showRateLimitResult(result, detected);
+                    showHealingResult(
+                        result, detected ? "success" : "error"
+                    );
+
+                    showEditorMessage(
+                        detected
+                            ? "Rate-limit test completed safely."
+                            : (data.result || "Rate-limit test failed."),
+                        detected ? "success" : "error"
+                    );
+
+                } else if (response.ok && data.recovered === true) {
+                    setStage(
+                        "recoveryCard", "recoveryMessage", "recoveryTime",
+                        "Self-healing successful. The request recovered on retry."
+                    );
+
+                    showHealingResult(
+                        "SELF-HEALING SUCCESSFUL\n\n" +
+                        "Attempts: " + (data.attempts ?? "Confirmed"),
+                        "success"
+                    );
+
+                    showAnalysis(data.result || "");
+
+                } else {
+                    $("recoveryCard").classList.add("failed");
+
+                    setStage(
+                        "recoveryCard", "recoveryMessage", "recoveryTime",
+                        "Recovery was not confirmed."
+                    );
+
+                    showHealingResult(
+                        "Recovery was not confirmed. Check the backend configuration.",
+                        "error"
+                    );
+                }
+
+            } catch (error) {
+                $("recoveryCard").classList.add("failed");
+
+                setStage(
+                    "recoveryCard", "recoveryMessage", "recoveryTime",
+                    "The test could not be completed."
+                );
+
+                showHealingResult(
+                    "The test could not be completed. Check the backend configuration.",
+                    "error"
+                );
+
+            } finally {
+                requestInProgress = false;
+                setBusy(false);
+                await updateInjectionButtons();
+            }
+        }
+
+        function updateEditorLanguage() {
+            if (editor) {
+                monaco.editor.setModelLanguage(
+                    editor.getModel(),
+                    languageMap[languageSelect.value] || "plaintext"
+                );
+            }
+        }
+
+        require.config({
+            paths: {
+                vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs"
+            }
+        });
+
+        require(["vs/editor/editor.main"], function () {
+            editor = monaco.editor.create($("editor"), {
+                value: "",
+                language: "plaintext",
+                theme: "vs-dark",
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: "on",
+                roundedSelection: true,
+                scrollBeyondLastLine: false,
+                wordWrap: "on",
+                tabSize: 4
+            });
+
+            showEditorMessage(
+                "Editor ready. Paste your code here.", "success"
+            );
+        });
+
+        languageSelect.addEventListener("change", updateEditorLanguage);
+
+        checkButton.addEventListener("click", sendCode);
+
+        selfHealButton.addEventListener(
+            "click", () => runHealingTest("503")
+        );
+
+        rateLimitButton.addEventListener(
+            "click", () => runHealingTest("rate-limit")
+        );
+
+        applyButton.addEventListener("click", () => {
+            if (!fixedCode || !editor) return;
+
+            editor.setValue(fixedCode);
+            updateEditorLanguage();
+
+            showEditorMessage(
+                "Corrected code applied. Review before saving.",
+                "success"
+            );
+
+            applyButton.disabled = true;
+        });
+
+        resetButton.addEventListener("click", () => {
+            if (requestInProgress) return;
+
+            if (editor) editor.setValue("");
+
+            fixedCode = "";
+            applyButton.disabled = true;
+            rateLimitResult.style.display = "none";
+
+            resetStages();
+            showEditorMessage("Editor cleared.");
+            showHealingResult(
+                "Self-healing results will appear here."
+            );
+        });
+
+        resetStages();
+        updateInjectionButtons();
+
+        setInterval(() => {
+            if (!requestInProgress) {
+                updateInjectionButtons();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
